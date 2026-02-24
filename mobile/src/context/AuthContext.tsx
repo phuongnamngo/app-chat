@@ -76,7 +76,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Register
   const register = useCallback(async (data: RegisterData): Promise<void> => {
     const response = await authAPI.register(data);
-
     if (response.success && response.data) {
       const { token: newToken, user: newUser } = response.data;
 

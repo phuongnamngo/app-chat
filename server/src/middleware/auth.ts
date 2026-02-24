@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, JwtPayload } from '../types';
 
-const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET: string = process.env.JWT_SECRET || '3a6b5d2b9f8f536613f3d451d7f771c0ffdb620851e2b23db25c22a0a16445ad';
 
 const authMiddleware = (
   req: AuthRequest,

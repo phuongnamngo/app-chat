@@ -1,5 +1,3 @@
-
-
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,6 +11,8 @@ import ChatScreen from '@/screens/ChatScreen/ChatScreen';
 import LoginScreen from '@/screens/LoginScreen/LoginScreen';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { RootStackParamList } from '@/types';
+import RegisterScreen from '@/screens/Register/RegisterScreen';
+import ChatListScreen from '@/screens/ChatList/ChatListScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -35,19 +35,35 @@ function ApplicationNavigator() {
           {/* <Stack.Screen component={Startup} name={Paths.Startup} />
           <Stack.Screen component={Example} name={Paths.Example} /> */}
           {isAuthenticated ? (
+          // ===== Đã đăng nhập =====
+          <>
+            <Stack.Screen
+              name="ChatList"
+              component={ChatListScreen}
+              options={{ title: 'Tin nhắn' }}
+            />
             <Stack.Screen
               name="Chat"
               component={ChatScreen}
               options={({ route }) => ({
-                title: 'Chat',
+                title: route.params.otherUserName || 'Chat',
               })}
             />
+          </>
         ) : (
+          // ===== Chưa đăng nhập =====
+          <>
             <Stack.Screen
               name="Login"
               component={LoginScreen}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ headerShown: false }}
+            />
+          </>
         )}
         </Stack.Navigator>
       </NavigationContainer>
