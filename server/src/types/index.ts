@@ -122,3 +122,47 @@ export interface ApiResponse<T = unknown> {
   error?: string;
   message?: string;
 }
+
+// ==================
+// DEVICE TOKEN
+// ==================
+export interface IDeviceToken extends Document {
+  userId: string;
+  token: string;
+  platform: 'ios' | 'android';
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ==================
+// NOTIFICATION
+// ==================
+export interface NotificationPayload {
+  title: string;
+  body: string;
+  data?: Record<string, string>;
+}
+
+export interface PushNotificationData {
+  roomId: string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  messageType: string;
+  timestamp: string;
+}
+
+// ==================
+// USER (cập nhật thêm fcmTokens)
+// ==================
+export interface IUser extends Document {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+  password: string;
+  avatar: string;
+  fcmTokens: string[];       // ← THÊM MỚI
+  createdAt: Date;
+  comparePassword(password: string): Promise<boolean>;
+}

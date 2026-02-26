@@ -1,10 +1,13 @@
 import { Server, Socket } from 'socket.io';
 import Message from '../models/Message';
+import Conversation from '../models/Conversation';
+import notificationService from '../services/notificationService';
 import {
   ServerToClientEvents,
   ClientToServerEvents,
   SendMessageData,
   TypingData,
+  PushNotificationData,
 } from '../types';
 
 type TypedIO = Server<ClientToServerEvents, ServerToClientEvents>;
@@ -56,6 +59,64 @@ const chatHandler = (io: TypedIO): void => {
       // Broadcast đến room
       io.to(roomId).emit('receive_message', msgData);
       console.log(`💬 [${roomId}] ${senderName}: ${message}`);
+
+      // =============================================
+      // 3) GỬI PUSH NOTIFICATION CHO USER OFFLINE
+      // =============================================
+      try {
+        // Lấy danh sách userId trong room
+        // Room format: room_{id1}_{id2}
+        const userIdsInRoom = roomId
+          .replace('room_', '')
+          .split('_');
+
+        // Lọc ra những user KHÔNG online hoặc KHÔNG ở trong room
+        const offlineRecipients = userIdsInRoom.filter((uid) => {
+          // Bỏ qua người gửi
+          if (uid === senderId) return false;
+
+          // Kiểm tra user có đang online không
+          const recipientSocketId = onlineUsers.get(uid);
+          if (!recipientSocketId) return true; // offline → gửi push
+
+          // Kiểm tra user online nhưng có đang ở room này không
+          const recipientSocket = io.sockets.sockets.get(recipientSocketId);
+          if (!recipientSocket) return true;
+
+          const isInRoom = recipientSocket.rooms.has(roomId);
+          return !isInRoom; // không ở room → gửi push
+        });
+
+        if (offlineRecipients.length > 0) {
+          // Cắt ngắn message cho notification
+          const truncatedMessage =
+            message.length > 100
+              ? message.substring(0, 100) + '...'
+              : message;
+
+          const notificationData: PushNotificationData = {
+            roomId,
+            senderId,
+            senderName,
+            message: truncatedMessage,
+            messageType: messageType || 'text',
+            timestamp: msgData.timestamp.toISOString(),
+          };
+
+          await notificationService.sendToUsers(
+            offlineRecipients,
+            senderName,
+            truncatedMessage,
+            notificationData
+          );
+
+          console.log(
+            `📤 Push sent to ${offlineRecipients.length} offline user(s)`
+          );
+        }
+      } catch (error) {
+        console.error('❌ Error sending push notification:', error);
+      }
     });
 
     // ======= TYPING =======
