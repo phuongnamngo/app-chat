@@ -60,6 +60,15 @@ export interface IConversation extends Document {
   createdAt: Date;
 }
 
+export interface IConversationRead extends Document {
+  _id: Types.ObjectId;
+  userId: string;
+  roomId: string;
+  lastReadAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // ==================
 // AUTH TYPES
 // ==================

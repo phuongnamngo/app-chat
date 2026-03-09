@@ -47,9 +47,12 @@ class NotificationService {
             body,
           },
           data: {
-            ...data,
-            // Tất cả value phải là string
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            roomId: data.roomId,
+            senderId: data.senderId,
+            senderName: data.senderName,
+            message: data.message,
+            messageType: data.messageType,
+            timestamp: data.timestamp,
             type: 'chat_message',
           },
           android: {

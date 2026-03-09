@@ -9,6 +9,7 @@ import connectDB from './config/db';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import messageRoutes from './routes/messages';
+import conversationRoutes from './routes/conversations';
 import notificationRoutes from './routes/notification';
 import chatHandler from './socket/chatHandler';
 import {
@@ -45,6 +46,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/conversations', conversationRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Health check

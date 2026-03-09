@@ -8,7 +8,7 @@ import {
 } from '../types';
 import { storage } from '@/App';
 
-const API_URL = 'http://192.168.100.142:3000/api';
+const API_URL = 'http://192.168.19.105:3000/api';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -58,6 +58,48 @@ export const messageAPI = {
   ): Promise<ApiResponse<Message[]>> => {
     const response = await api.get<ApiResponse<Message[]>>(
       `/messages/${roomId}?page=${page}&limit=${limit}`
+    );
+    return response.data;
+  },
+};
+
+// ======= NOTIFICATION API (FCM token) =======
+export const notificationAPI = {
+  saveToken: async (fcmToken: string): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>('/notifications/token', {
+      fcmToken,
+    });
+    return response.data;
+  },
+
+  removeToken: async (fcmToken: string): Promise<ApiResponse> => {
+    const response = await api.delete<ApiResponse>('/notifications/token', {
+      data: { fcmToken },
+    });
+    return response.data;
+  },
+};
+
+// ======= CONVERSATIONS API (list + unread, mark read) =======
+export interface ConversationItem {
+  roomId: string;
+  otherUser: { id: string; name: string; email: string; avatar?: string };
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
+export const conversationAPI = {
+  getList: async (): Promise<ApiResponse<ConversationItem[]>> => {
+    const response = await api.get<ApiResponse<ConversationItem[]>>(
+      '/conversations'
+    );
+    return response.data;
+  },
+
+  markAsRead: async (roomId: string): Promise<ApiResponse> => {
+    const response = await api.post<ApiResponse>(
+      `/conversations/${encodeURIComponent(roomId)}/read`
     );
     return response.data;
   },

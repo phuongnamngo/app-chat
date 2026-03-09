@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,9 @@ import {
   ListRenderItem,
   ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import api from '@/services/api';
+import api, { conversationAPI, ConversationItem } from '@/services/api';
 import { RootStackParamList, User } from '@/types';
 import { getSocket } from '@/services/socket';
 import { useAuth } from '@/context/AuthContext';
@@ -36,6 +37,7 @@ interface ChatItem {
 const ChatListScreen: React.FC<Props> = ({ navigation }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -44,6 +46,17 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
   const { user, logout } = useAuth();
   const socket = getSocket();
 
+  const createRoomId = (userId1: string, userId2: string): string => {
+    const sorted = [userId1, userId2].sort();
+    return `room_${sorted[0]}_${sorted[1]}`;
+  };
+
+  const unreadByRoomId = useMemo(() => {
+    const map = new Map<string, number>();
+    conversations.forEach((c) => map.set(c.roomId, c.unreadCount));
+    return map;
+  }, [conversations]);
+
   // ======= LOAD DANH SÁCH USERS =======
   const fetchUsers = useCallback(async (): Promise<void> => {
     try {
@@ -51,7 +64,6 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
         '/users'
       );
       if (response.data.success && response.data.data) {
-        // Loại bỏ chính mình khỏi danh sách
         const otherUsers = response.data.data.filter(
           (u: User) => u.id !== user?.id
         );
@@ -65,10 +77,30 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
     }
   }, [user?.id]);
 
+  // ======= LOAD CONVERSATIONS (unreadCount) =======
+  const fetchConversations = useCallback(async (): Promise<void> => {
+    try {
+      const res = await conversationAPI.getList();
+      if (res.success && res.data) setConversations(res.data);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // ======= LOAD KHI MỞ MÀN HÌNH =======
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    if (user) fetchConversations();
+  }, [user, fetchConversations]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user) fetchConversations();
+    }, [user, fetchConversations])
+  );
 
   // ======= SOCKET: LẮNG NGHE ONLINE STATUS =======
   useEffect(() => {
@@ -84,6 +116,18 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
       socket.off('online_users', handleOnlineUsers);
     };
   }, [socket]);
+
+  // ======= SOCKET: nhận tin nhắn mới → cập nhật badge =======
+  useEffect(() => {
+    if (!socket) return;
+    const onReceiveMessage = (): void => {
+      fetchConversations();
+    };
+    socket.on('receive_message', onReceiveMessage);
+    return () => {
+      socket.off('receive_message', onReceiveMessage);
+    };
+  }, [socket, fetchConversations]);
 
   // ======= TÌM KIẾM =======
   useEffect(() => {
@@ -101,30 +145,31 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
     setFilteredUsers(filtered);
   }, [searchQuery, users]);
 
-  // ======= TẠO ROOM ID (sắp xếp 2 userId để luôn tạo cùng 1 room) =======
-  const createRoomId = (userId1: string, userId2: string): string => {
-    const sorted = [userId1, userId2].sort();
-    return `room_${sorted[0]}_${sorted[1]}`;
-  };
+  // ======= NAVIGATE ĐẾN CHAT + MARK READ =======
+  const handleOpenChat = useCallback(
+    async (otherUser: User): Promise<void> => {
+      if (!user) return;
 
-  // ======= NAVIGATE ĐẾN CHAT =======
-  const handleOpenChat = (otherUser: User): void => {
-    if (!user) return;
-
-    const roomId = createRoomId(user.id, otherUser.id);
-
-    navigation.navigate('Chat', {
-      roomId,
-      userId: user.id,
-      userName: user.name,
-      otherUserName: otherUser.name,
-    });
-  };
+      const roomId = createRoomId(user.id, otherUser.id);
+      try {
+        await conversationAPI.markAsRead(roomId);
+      } catch {
+        // ignore
+      }
+      navigation.navigate('Chat', {
+        roomId,
+        userId: user.id,
+        userName: user.name,
+        otherUserName: otherUser.name,
+      });
+    },
+    [user, navigation]
+  );
 
   // ======= PULL TO REFRESH =======
   const handleRefresh = async (): Promise<void> => {
     setIsRefreshing(true);
-    await fetchUsers();
+    await Promise.all([fetchUsers(), fetchConversations()]);
     setIsRefreshing(false);
   };
 
@@ -197,6 +242,8 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
       const isOnline = onlineUserIds.includes(item.id);
       const initials = getInitials(item.name);
       const avatarColor = getAvatarColor(item.name);
+      const roomId = user ? createRoomId(user.id, item.id) : '';
+      const unreadCount = roomId ? unreadByRoomId.get(roomId) ?? 0 : 0;
 
       return (
         <TouchableOpacity
@@ -209,6 +256,13 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
               <Text style={styles.avatarText}>{initials}</Text>
             </View>
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
             {/* Online indicator */}
             <View
               style={[
@@ -240,7 +294,7 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       );
     },
-    [onlineUserIds, user]
+    [onlineUserIds, user, unreadByRoomId, handleOpenChat]
   );
 
   // ======= RENDER EMPTY LIST =======
@@ -512,6 +566,23 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     borderWidth: 2.5,
     borderColor: '#FFF',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  badgeText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   userInfo: {
     flex: 1,

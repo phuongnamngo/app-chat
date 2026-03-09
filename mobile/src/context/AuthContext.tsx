@@ -6,7 +6,12 @@ import React, {
   useCallback,
   ReactNode,
 } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, notificationAPI } from '../services/api';
+import {
+  requestNotificationPermission,
+  getFCMToken,
+  onFCMTokenRefresh,
+} from '../services/firebaseMessaging';
 import { connectSocket, disconnectSocket } from '../services/socket';
 import { User, LoginData, RegisterData } from '../types';
 import { storage } from '@/App';
@@ -55,6 +60,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loadStoredAuth();
   }, []);
 
+  // FCM token refresh: cập nhật token lên server khi đổi
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onFCMTokenRefresh(async (newToken) => {
+      try {
+        await notificationAPI.saveToken(newToken);
+      } catch {
+        // ignore
+      }
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  const registerFCMToken = useCallback(async (authToken: string): Promise<void> => {
+    const hasPermission = await requestNotificationPermission();
+    if (!hasPermission) return;
+    const fcmToken = await getFCMToken();
+    if (!fcmToken) return;
+    try {
+      await notificationAPI.saveToken(fcmToken);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Login
   const login = useCallback(async (data: LoginData): Promise<void> => {
     const response = await authAPI.login(data);
@@ -68,10 +98,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       connectSocket(newUser.id);
+      await registerFCMToken(newToken);
     } else {
       throw new Error(response.error || 'Login failed');
     }
-  }, []);
+  }, [registerFCMToken]);
 
   // Register
   const register = useCallback(async (data: RegisterData): Promise<void> => {
@@ -85,13 +116,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(newToken);
       setUser(newUser);
       connectSocket(newUser.id);
+      await registerFCMToken(newToken);
     } else {
       throw new Error(response.error || 'Register failed');
     }
-  }, []);
+  }, [registerFCMToken]);
 
   // Logout
   const logout = useCallback(async (): Promise<void> => {
+    try {
+      const fcmToken = await getFCMToken();
+      if (fcmToken) {
+        await notificationAPI.removeToken(fcmToken);
+      }
+    } catch {
+      // ignore
+    }
     await storage.delete('token');
     await storage.delete('user');
     disconnectSocket();

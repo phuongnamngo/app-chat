@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import mongoose from 'mongoose';
 import Message from '../models/Message';
 import Conversation from '../models/Conversation';
 import notificationService from '../services/notificationService';
@@ -52,6 +53,26 @@ const chatHandler = (io: TypedIO): void => {
       try {
         const newMessage = new Message(msgData);
         await newMessage.save();
+
+        // Cập nhật Conversation (lastMessage, lastMessageAt) cho GET /api/conversations
+        const ids = roomId.replace('room_', '').split('_').sort();
+        if (ids.length === 2) {
+          const participantIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+          const existing = await Conversation.findOne({
+            participants: { $all: participantIds },
+          });
+          if (existing) {
+            existing.lastMessage = message;
+            existing.lastMessageAt = msgData.timestamp;
+            await existing.save();
+          } else {
+            await Conversation.create({
+              participants: participantIds,
+              lastMessage: message,
+              lastMessageAt: msgData.timestamp,
+            });
+          }
+        }
       } catch (error) {
         console.error('❌ Error saving message:', error);
       }

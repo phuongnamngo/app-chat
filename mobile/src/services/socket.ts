@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { SendMessageData, TypingData, Message } from '../types';
 
-const SERVER_URL = 'http://192.168.100.142:3000';
+const SERVER_URL = 'http://192.168.19.105:3000';
 
 // Định nghĩa Socket events
 interface ServerToClientEvents {

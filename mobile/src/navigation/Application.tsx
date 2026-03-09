@@ -1,4 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
+import { navigationRef } from '@/navigation/rootRef';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -30,7 +31,7 @@ function ApplicationNavigator() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
+      <NavigationContainer ref={navigationRef} theme={navigationTheme}>
         <Stack.Navigator key={variant} screenOptions={{ headerShown: false }}>
           {/* <Stack.Screen component={Startup} name={Paths.Startup} />
           <Stack.Screen component={Example} name={Paths.Example} /> */}

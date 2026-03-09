@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { getSocket } from '@/services/socket';
-import { messageAPI } from '@/services/api';
+import { messageAPI, conversationAPI } from '@/services/api';
 import { Message, RootStackParamList } from '@/types';
 
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
@@ -28,11 +28,47 @@ const ChatScreen: React.FC<Props> = ({ route }) => {
   const [inputText, setInputText] = useState<string>('');
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [typingUser, setTypingUser] = useState<string | null>(null);
-  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(true);
 
   const flatListRef = useRef<FlatList<Message>>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const socket = getSocket();
+
+  const getInitials = (name: string): string => {
+    const trimmed = name.trim();
+    if (!trimmed) return 'U';
+    const words = trimmed.split(' ');
+    if (words.length >= 2) {
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+    return trimmed.substring(0, 2).toUpperCase();
+  };
+
+  const getAvatarColor = (name: string): string => {
+    const colors = [
+      '#FF6B6B',
+      '#4ECDC4',
+      '#45B7D1',
+      '#96CEB4',
+      '#FFEAA7',
+      '#DDA0DD',
+      '#98D8C8',
+      '#F7DC6F',
+      '#BB8FCE',
+      '#85C1E9',
+      '#F0B27A',
+      '#82E0AA',
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Mark room as read when entering chat
+  useEffect(() => {
+    conversationAPI.markAsRead(roomId).catch(() => {});
+  }, [roomId]);
 
   // Load lịch sử tin nhắn
   useEffect(() => {
@@ -44,8 +80,6 @@ const ChatScreen: React.FC<Props> = ({ route }) => {
         }
       } catch (error) {
         console.error('Error loading messages:', error);
-      } finally {
-        setIsLoadingHistory(false);
       }
     };
 
@@ -138,39 +172,63 @@ const ChatScreen: React.FC<Props> = ({ route }) => {
     });
   };
 
+  const renderedMessages = useMemo(
+    () => [...messages].reverse(),
+    [messages]
+  );
+
   // Render tin nhắn
   const renderMessage: ListRenderItem<Message> = useCallback(
     ({ item }) => {
       const isMyMessage = item.senderId === userId;
+      const initials = getInitials(item.senderName);
+      const avatarColor = getAvatarColor(item.senderName);
 
       return (
         <View
           style={[
-            styles.messageBubble,
-            isMyMessage ? styles.myMessage : styles.otherMessage,
+            styles.messageRow,
+            isMyMessage ? styles.myMessageRow : styles.otherMessageRow,
           ]}
         >
           {!isMyMessage && (
-            <Text style={styles.senderName}>{item.senderName}</Text>
+            <View
+              style={[
+                styles.messageAvatar,
+                { backgroundColor: avatarColor },
+              ]}
+            >
+              <Text style={styles.messageAvatarText}>{initials}</Text>
+            </View>
           )}
-          <Text
+          <View
             style={[
-              styles.messageText,
-              isMyMessage ? styles.myMessageText : styles.otherMessageText,
+              styles.messageBubble,
+              isMyMessage ? styles.myMessage : styles.otherMessage,
             ]}
           >
-            {item.message}
-          </Text>
-          <Text
-            style={[
-              styles.timestamp,
-              isMyMessage
-                ? styles.myTimestamp
-                : styles.otherTimestamp,
-            ]}
-          >
-            {formatTime(item.timestamp)}
-          </Text>
+            {!isMyMessage && (
+              <Text style={styles.senderName}>{item.senderName}</Text>
+            )}
+            <Text
+              style={[
+                styles.messageText,
+                isMyMessage ? styles.myMessageText : styles.otherMessageText,
+              ]}
+            >
+              {item.message}
+            </Text>
+            <Text
+              style={[
+                styles.timestamp,
+                isMyMessage
+                  ? styles.myTimestamp
+                  : styles.otherTimestamp,
+              ]}
+            >
+              {formatTime(item.timestamp)}
+            </Text>
+          </View>
         </View>
       );
     },
@@ -191,15 +249,14 @@ const ChatScreen: React.FC<Props> = ({ route }) => {
       {/* Messages */}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={renderedMessages}
         renderItem={renderMessage}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.messageList}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        onLayout={() =>
-          flatListRef.current?.scrollToEnd({ animated: false })
+        inverted
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={
+          Platform.OS === 'ios' ? 'interactive' : 'on-drag'
         }
         showsVerticalScrollIndicator={false}
       />
@@ -244,24 +301,57 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F0F0',
   },
   messageList: {
-    padding: 16,
-    paddingBottom: 8,
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 6,
+  },
+  myMessageRow: {
+    justifyContent: 'flex-end',
+    marginLeft: 40,
+  },
+  otherMessageRow: {
+    justifyContent: 'flex-start',
+    marginRight: 40,
   },
   messageBubble: {
-    maxWidth: '78%',
-    padding: 12,
+    maxWidth: '80%',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 18,
-    marginBottom: 8,
+  },
+  messageAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  messageAvatarText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   myMessage: {
     alignSelf: 'flex-end',
     backgroundColor: '#007AFF',
-    borderBottomRightRadius: 4,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 6,
   },
   otherMessage: {
     alignSelf: 'flex-start',
     backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 4,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
