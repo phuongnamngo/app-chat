@@ -2390,6 +2390,15 @@
     invariant "^2.2.4"
     nullthrows "^1.1.1"
 
+"@react-navigation/bottom-tabs@^7.15.5":
+  version "7.15.5"
+  resolved "https://registry.yarnpkg.com/@react-navigation/bottom-tabs/-/bottom-tabs-7.15.5.tgz#a858b88d0d23f0f57eac6204752adfdbb16380cc"
+  integrity sha512-wQHredlCrRmShWQ1vF4HUcLdaiJ8fUgnbaeQH7BJ7MQVQh4mdzab0IOY/4QSmUyNRB350oyu1biTycyQ5FKWMQ==
+  dependencies:
+    "@react-navigation/elements" "^2.9.10"
+    color "^4.2.3"
+    sf-symbols-typescript "^2.1.0"
+
 "@react-navigation/core@^7.12.3":
   version "7.12.3"
   resolved "https://registry.npmjs.org/@react-navigation/core/-/core-7.12.3.tgz"
@@ -2407,6 +2416,15 @@
   version "2.6.1"
   resolved "https://registry.npmjs.org/@react-navigation/elements/-/elements-2.6.1.tgz"
   integrity sha512-kVbIo+5FaqJv6MiYUR6nQHiw+10dmmH/P10C29wrH9S6fr7k69fImHGeiOI/h7SMDJ2vjWhftyEjqYO+c2LG/w==
+  dependencies:
+    color "^4.2.3"
+    use-latest-callback "^0.2.4"
+    use-sync-external-store "^1.5.0"
+
+"@react-navigation/elements@^2.9.10":
+  version "2.9.10"
+  resolved "https://registry.yarnpkg.com/@react-navigation/elements/-/elements-2.9.10.tgz#8cde92a7b4d088a46efb931e6edb2644eddd630c"
+  integrity sha512-N8tuBekzTRb0pkMHFJGvmC6Q5OisSbt6gzvw7RHMnp4NDo5auVllT12sWFaTXf8mTduaLKNSrD/NZNaOqThCBg==
   dependencies:
     color "^4.2.3"
     use-latest-callback "^0.2.4"
@@ -7821,6 +7839,11 @@ setprototypeof@1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
+
+sf-symbols-typescript@^2.1.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/sf-symbols-typescript/-/sf-symbols-typescript-2.2.0.tgz#926d6e0715e3d8784cadf7658431e36581254208"
+  integrity sha512-TPbeg0b7ylrswdGCji8FRGFAKuqbpQlLbL8SOle3j1iHSs5Ob5mhvMAxWN2UItOjgALAB5Zp3fmMfj8mbWvXKw==
 
 shebang-command@^2.0.0:
   version "2.0.0"

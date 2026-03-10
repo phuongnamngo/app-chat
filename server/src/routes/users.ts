@@ -1,9 +1,46 @@
 import { Router, Response } from 'express';
 import User from '../models/User';
 import authMiddleware from '../middleware/auth';
-import { AuthRequest, ApiResponse, UserPayload } from '../types';
+import { AuthRequest, ApiResponse, UserPayload, UserProfilePayload } from '../types';
 
 const router = Router();
+
+// Lấy thông tin user đang đăng nhập (phải đặt trước /search và /)
+router.get(
+  '/me',
+  authMiddleware,
+  async (
+    req: AuthRequest,
+    res: Response<ApiResponse<UserProfilePayload>>
+  ): Promise<void> => {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ success: false, error: 'Unauthorized' });
+        return;
+      }
+      const user = await User.findById(userId).select('-password').lean();
+      if (!user) {
+        res.status(401).json({ success: false, error: 'User not found' });
+        return;
+      }
+      const profile: UserProfilePayload = {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        createdAt: user.createdAt
+          ? new Date(user.createdAt).toISOString()
+          : undefined,
+      };
+      res.json({ success: true, data: profile });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Server error';
+      res.status(500).json({ success: false, error: message });
+    }
+  }
+);
 
 // Lấy danh sách tất cả users
 router.get(
@@ -80,6 +117,36 @@ router.get(
         success: true,
         data: userList,
       });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Server error';
+      res.status(500).json({ success: false, error: message });
+    }
+  }
+);
+
+// Lấy thông tin user theo id (đặt sau /me và /search để tránh match nhầm)
+router.get(
+  '/:id',
+  authMiddleware,
+  async (
+    req: AuthRequest,
+    res: Response<ApiResponse<UserPayload>>
+  ): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id).select('-password -fcmTokens').lean();
+      if (!user) {
+        res.status(404).json({ success: false, error: 'User not found' });
+        return;
+      }
+      const payload: UserPayload = {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+      };
+      res.json({ success: true, data: payload });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Server error';

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Screens } from '@/navigation/constants';
 import api, { conversationAPI, ConversationItem } from '@/services/api';
 import { RootStackParamList, User } from '@/types';
 import { getSocket } from '@/services/socket';
@@ -25,13 +26,6 @@ type ChatListNavigationProp = StackNavigationProp<
 
 interface Props {
   navigation: ChatListNavigationProp;
-}
-
-interface ChatItem {
-  user: User;
-  lastMessage: string;
-  lastMessageAt: string;
-  unreadCount: number;
 }
 
 const ChatListScreen: React.FC<Props> = ({ navigation }) => {
@@ -156,7 +150,7 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
       } catch {
         // ignore
       }
-      navigation.navigate('Chat', {
+      navigation.navigate(Screens.Chat, {
         roomId,
         userId: user.id,
         userName: user.name,
@@ -215,25 +209,6 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
-  };
-
-  // ======= FORMAT THỜI GIAN =======
-  const formatTime = (dateString: string): string => {
-    if (!dateString) return '';
-
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Vừa xong';
-    if (diffMins < 60) return `${diffMins} phút`;
-    if (diffHours < 24) return `${diffHours} giờ`;
-    if (diffDays < 7) return `${diffDays} ngày`;
-
-    return date.toLocaleDateString('vi-VN');
   };
 
   // ======= RENDER MỖI USER ITEM =======

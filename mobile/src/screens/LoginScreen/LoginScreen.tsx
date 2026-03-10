@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Screens } from '@/navigation/constants';
 import { useAuth } from '@/context/AuthContext';
 import { RootStackParamList } from '@/types';
 
@@ -92,7 +93,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.linkButton}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate(Screens.Register)}
         >
           <Text style={styles.linkText}>
             Chưa có tài khoản? <Text style={styles.linkBold}>Đăng ký</Text>

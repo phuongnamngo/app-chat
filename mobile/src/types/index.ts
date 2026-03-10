@@ -6,6 +6,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  createdAt?: string;
 }
 
 // ==================
@@ -79,9 +80,13 @@ export interface TypingData {
 // ==================
 // NAVIGATION
 // ==================
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  Main: NavigatorScreenParams<MainTabParamList>;
+  // Chat tab stack (when inside Main)
   ChatList: undefined;
   Chat: {
     roomId: string;
@@ -89,4 +94,30 @@ export type RootStackParamList = {
     userName: string;
     otherUserName?: string;
   };
+  // Menu tab stack (when inside Main)
+  Menu: undefined;
+  Settings: undefined;
+  // Legacy (used by commented-out Startup/Example; Paths enum uses lowercase)
+  example?: undefined;
+  startup?: undefined;
+};
+
+export type MainTabParamList = {
+  Chat: NavigatorScreenParams<ChatStackParamList>;
+  Menu: NavigatorScreenParams<MenuStackParamList>;
+};
+
+export type ChatStackParamList = {
+  ChatList: undefined;
+  Chat: {
+    roomId: string;
+    userId: string;
+    userName: string;
+    otherUserName?: string;
+  };
+};
+
+export type MenuStackParamList = {
+  Menu: undefined;
+  Settings: undefined;
 };

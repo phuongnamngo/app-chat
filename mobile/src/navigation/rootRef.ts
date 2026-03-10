@@ -1,5 +1,6 @@
 import { createNavigationContainerRef } from '@react-navigation/native';
 import { RootStackParamList } from '@/types';
+import { Screens } from '@/navigation/constants';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
@@ -10,6 +11,13 @@ export function navigateToChat(params: {
   otherUserName?: string;
 }): void {
   if (navigationRef.isReady()) {
-    navigationRef.navigate('Chat', params);
+    // Chat is nested: Main (tabs) > Chat (tab) > Chat (screen)
+    navigationRef.navigate(Screens.Main, {
+      screen: 'Chat',
+      params: {
+        screen: Screens.Chat,
+        params,
+      },
+    });
   }
 }

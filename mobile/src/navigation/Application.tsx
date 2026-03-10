@@ -3,17 +3,15 @@ import { navigationRef } from '@/navigation/rootRef';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { Paths } from '@/navigation/paths';
+import { Screens } from '@/navigation/constants';
 import { useTheme } from '@/theme';
 
-import { Example, Startup } from '@/screens';
 import { useAuth } from '@/context/AuthContext';
-import ChatScreen from '@/screens/ChatScreen/ChatScreen';
 import LoginScreen from '@/screens/LoginScreen/LoginScreen';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { RootStackParamList } from '@/types';
 import RegisterScreen from '@/screens/Register/RegisterScreen';
-import ChatListScreen from '@/screens/ChatList/ChatListScreen';
+import MainTabs from '@/navigation/MainTabs';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -36,31 +34,22 @@ function ApplicationNavigator() {
           {/* <Stack.Screen component={Startup} name={Paths.Startup} />
           <Stack.Screen component={Example} name={Paths.Example} /> */}
           {isAuthenticated ? (
-          // ===== Đã đăng nhập =====
-          <>
-            <Stack.Screen
-              name="ChatList"
-              component={ChatListScreen}
-              options={{ title: 'Tin nhắn' }}
-            />
-            <Stack.Screen
-              name="Chat"
-              component={ChatScreen}
-              options={({ route }) => ({
-                title: route.params.otherUserName || 'Chat',
-              })}
-            />
-          </>
+          // ===== Đã đăng nhập: Main = Bottom Tabs (Chat | Menu) =====
+          <Stack.Screen
+            name={Screens.Main}
+            component={MainTabs}
+            options={{ title: 'Main' }}
+          />
         ) : (
           // ===== Chưa đăng nhập =====
           <>
             <Stack.Screen
-              name="Login"
+              name={Screens.Login}
               component={LoginScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="Register"
+              name={Screens.Register}
               component={RegisterScreen}
               options={{ headerShown: false }}
             />

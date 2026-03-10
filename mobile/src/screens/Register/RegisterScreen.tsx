@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Screens } from '@/navigation/constants';
 import { useAuth } from '@/context/AuthContext';
 import { RootStackParamList } from '@/types';
 
@@ -314,7 +315,7 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
           {/* Login Link */}
           <TouchableOpacity
             style={styles.linkButton}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate(Screens.Login)}
           >
             <Text style={styles.linkText}>
               Đã có tài khoản?{' '}

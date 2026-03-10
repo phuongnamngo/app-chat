@@ -21,6 +21,10 @@ export interface UserPayload {
   avatar?: string;
 }
 
+export interface UserProfilePayload extends UserPayload {
+  createdAt?: string;
+}
+
 // ==================
 // MESSAGE TYPES
 // ==================
