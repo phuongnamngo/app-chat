@@ -59,7 +59,19 @@ router.get(
         const otherUserDoc = await User.findById(otherUserId)
           .select('name email avatar')
           .lean();
-        if (!otherUserDoc) continue;
+        const otherUser: UserPayload = otherUserDoc
+          ? {
+              id: otherUserDoc._id.toString(),
+              name: otherUserDoc.name,
+              email: otherUserDoc.email,
+              avatar: otherUserDoc.avatar,
+            }
+          : {
+              id: otherUserId,
+              name: 'Tài khoản đã xóa',
+              email: '',
+              avatar: '',
+            };
 
         const lastReadAt = readMap.get(roomId) || new Date(0);
         const unreadCount = await Message.countDocuments({
@@ -70,12 +82,7 @@ router.get(
 
         results.push({
           roomId,
-          otherUser: {
-            id: otherUserDoc._id.toString(),
-            name: otherUserDoc.name,
-            email: otherUserDoc.email,
-            avatar: otherUserDoc.avatar,
-          },
+          otherUser,
           lastMessage: lastMsg.message,
           lastMessageAt: lastMsg.timestamp.toISOString(),
           unreadCount,

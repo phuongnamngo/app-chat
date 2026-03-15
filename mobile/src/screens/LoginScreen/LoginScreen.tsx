@@ -41,9 +41,15 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     try {
       await login({ email: email.trim(), password });
       // Navigation sẽ tự động chuyển qua AuthContext
-    } catch (error) {
+    } catch (error: unknown) {
+      const responseData = (error as { response?: { data?: { error?: string } } })
+        ?.response?.data;
       const message =
-        error instanceof Error ? error.message : 'Đăng nhập thất bại';
+        typeof responseData?.error === 'string'
+          ? responseData.error
+          : error instanceof Error
+            ? error.message
+            : 'Đăng nhập thất bại';
       Alert.alert('Lỗi', message);
     } finally {
       setIsSubmitting(false);

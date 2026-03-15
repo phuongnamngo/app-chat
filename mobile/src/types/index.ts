@@ -97,6 +97,8 @@ export type RootStackParamList = {
   // Menu tab stack (when inside Main)
   Menu: undefined;
   Settings: undefined;
+  EditProfile: undefined;
+  ChangePassword: undefined;
   // Legacy (used by commented-out Startup/Example; Paths enum uses lowercase)
   example?: undefined;
   startup?: undefined;
@@ -120,4 +122,6 @@ export type ChatStackParamList = {
 export type MenuStackParamList = {
   Menu: undefined;
   Settings: undefined;
+  EditProfile: undefined;
+  ChangePassword: undefined;
 };

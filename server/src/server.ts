@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Application } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -38,6 +39,10 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+
+// Static: phục vụ file avatar
+const uploadsDir = path.join(__dirname, '..', 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
 // ======= DATABASE =======
 connectDB();

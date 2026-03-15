@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { Screens } from '@/navigation/constants';
 
 /**
  * Custom tab bar that does not use @react-navigation/elements (Badge/MissingIcon
  * can be undefined with some package versions). Uses only React Native primitives.
+ * Hidden when inside a chat room (Chat screen) so only the header back button is shown.
  */
 export function CustomTabBar({
   state,
@@ -15,6 +17,17 @@ export function CustomTabBar({
 }: BottomTabBarProps) {
   const { bottom: insetBottom } = useSafeAreaInsets();
   const bottomInset = insets?.bottom ?? insetBottom;
+
+  // Ẩn tab bar khi đang ở màn Chat (hộp chat), chỉ hiện khi ở ChatList hoặc Menu
+  const activeTabRoute = state.routes[state.index];
+  const descriptor = descriptors[activeTabRoute.key];
+  const nestedState = (descriptor as { state?: { routes: { name: string }[]; index: number } })
+    ?.state;
+  const activeScreenName = nestedState?.routes?.[nestedState.index]?.name;
+  const isInsideChatRoom = activeTabRoute.name === 'Chat' && activeScreenName === Screens.Chat;
+  if (isInsideChatRoom) {
+    return null;
+  }
 
   return (
     <View style={[styles.container, { paddingBottom: bottomInset }]}>

@@ -31,6 +31,14 @@ export default function MenuScreen({ navigation }: Props) {
     setProfileSheetVisible(true);
   };
 
+  const handleOpenEditProfile = () => {
+    navigation.navigate(Screens.EditProfile);
+  };
+
+  const handleOpenChangePassword = () => {
+    navigation.navigate(Screens.ChangePassword);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.list}>
@@ -48,6 +56,22 @@ export default function MenuScreen({ navigation }: Props) {
           activeOpacity={0.6}
         >
           <Text style={styles.rowText}>Xem thông tin người dùng</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={handleOpenEditProfile}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowText}>Chỉnh sửa hồ sơ</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={handleOpenChangePassword}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowText}>Đổi mật khẩu</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       </View>

@@ -98,6 +98,21 @@ export interface JwtPayload {
   exp?: number;
 }
 
+export interface PatchMeBody {
+  name?: string;
+  email?: string;
+  avatar?: string;
+}
+
+export interface ChangePasswordBody {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface DeleteMeBody {
+  password: string;
+}
+
 export interface AuthRequest extends Request {
   userId?: string;
 }

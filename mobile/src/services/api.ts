@@ -10,6 +10,8 @@ import {
 import { storage } from '@/App';
 
 const API_URL = 'http://192.168.19.105:3000/api';
+/** Base URL for static assets (e.g. avatar): base + /uploads/avatars/xxx */
+export const API_BASE = API_URL.replace(/\/api\/?$/, '');
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -51,9 +53,52 @@ export const authAPI = {
 };
 
 // ======= USER API (profile) =======
+export interface PatchMePayload {
+  name?: string;
+  email?: string;
+  avatar?: string;
+}
+
 export const userAPI = {
   getMe: async (): Promise<ApiResponse<User>> => {
     const response = await api.get<ApiResponse<User>>('/users/me');
+    return response.data;
+  },
+
+  patchMe: async (payload: PatchMePayload): Promise<ApiResponse<User>> => {
+    const response = await api.patch<ApiResponse<User>>('/users/me', payload);
+    return response.data;
+  },
+
+  changePassword: async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<ApiResponse<{ message?: string }>> => {
+    const response = await api.patch<ApiResponse<{ message?: string }>>(
+      '/users/me/password',
+      { currentPassword, newPassword }
+    );
+    return response.data;
+  },
+
+  deleteMe: async (password: string): Promise<ApiResponse<{ message?: string }>> => {
+    const response = await api.delete<ApiResponse<{ message?: string }>>(
+      '/users/me',
+      { data: { password } }
+    );
+    return response.data;
+  },
+
+  uploadAvatar: async (formData: FormData): Promise<ApiResponse<User>> => {
+    const response = await api.post<ApiResponse<User>>(
+      '/users/me/avatar',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data;
   },
 };

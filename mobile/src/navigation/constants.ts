@@ -14,6 +14,8 @@ export const Screens = {
   // Menu tab stack
   Menu: 'Menu',
   Settings: 'Settings',
+  EditProfile: 'EditProfile',
+  ChangePassword: 'ChangePassword',
 } as const;
 
 export type ScreenName = keyof typeof Screens;

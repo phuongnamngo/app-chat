@@ -127,9 +127,18 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         password,
       });
       // Nếu thành công, AuthContext sẽ tự chuyển màn hình
-    } catch (error) {
+    } catch (error: unknown) {
+      const responseData = (error as { response?: { data?: { error?: string } } })
+        ?.response?.data;
       const message =
-        error instanceof Error ? error.message : 'Đăng ký thất bại';
+        typeof responseData?.error === 'string'
+          ? responseData.error
+          : error instanceof Error
+            ? error.message
+            : 'Đăng ký thất bại';
+      if (message.includes('Email') || message.includes('email')) {
+        setErrors((prev) => ({ ...prev, email: message }));
+      }
       Alert.alert('Đăng ký thất bại', message);
     } finally {
       setIsSubmitting(false);
