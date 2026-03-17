@@ -10,6 +10,7 @@ import {
   TextInput,
   ListRenderItem,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -228,9 +229,16 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
         >
           {/* Avatar */}
           <View style={styles.avatarContainer}>
-            <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
+            {item.avatar ? (
+              <Image
+                source={{ uri: item.avatar }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <View style={[styles.avatar, { backgroundColor: avatarColor }]}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>
@@ -320,23 +328,30 @@ const ChatListScreen: React.FC<Props> = ({ navigation }) => {
       </View>
     );
   }
-
+  console.log(user?.avatar);
   // ======= MAIN RENDER =======
   return (
     <View style={styles.container}>
       {/* Profile Bar */}
       <View style={styles.profileBar}>
         <View style={styles.profileInfo}>
-          <View
-            style={[
-              styles.profileAvatar,
-              { backgroundColor: getAvatarColor(user?.name || '') },
-            ]}
-          >
-            <Text style={styles.profileAvatarText}>
-              {getInitials(user?.name || 'U')}
-            </Text>
-          </View>
+          {user?.avatar ? (
+            <Image
+              source={{ uri: `http://192.168.0.103:3000${user.avatar}` }}
+              style={styles.profileAvatarImage}
+            />
+          ) : (
+            <View
+              style={[
+                styles.profileAvatar,
+                { backgroundColor: getAvatarColor(user?.name || '') },
+              ]}
+            >
+              <Text style={styles.profileAvatarText}>
+                {getInitials(user?.name || 'U')}
+              </Text>
+            </View>
+          )}
           <View>
             <Text style={styles.profileName}>{user?.name}</Text>
             <Text style={styles.profileEmail}>{user?.email}</Text>
@@ -440,6 +455,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
+  profileAvatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: '#EDEDED',
+  },
   profileAvatarText: {
     color: '#FFF',
     fontSize: 16,
@@ -526,6 +548,12 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarImage: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#EDEDED',
   },
   avatarText: {
     color: '#FFF',

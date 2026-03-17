@@ -10,10 +10,26 @@ import SettingsScreen from '@/screens/SettingsScreen/SettingsScreen';
 import EditProfileScreen from '@/screens/EditProfileScreen/EditProfileScreen';
 import ChangePasswordScreen from '@/screens/ChangePasswordScreen/ChangePasswordScreen';
 import { CustomTabBar } from '@/navigation/CustomTabBar';
+import type { NavigationState, PartialState } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const ChatStack = createStackNavigator<ChatStackParamList>();
 const MenuStack = createStackNavigator<MenuStackParamList>();
+
+function getDeepestActiveRouteName(
+  state?: NavigationState | PartialState<NavigationState>
+): string | undefined {
+  if (!state || !('routes' in state)) return undefined;
+  const index = typeof state.index === 'number' ? state.index : 0;
+  const route = state.routes?.[index];
+  // @react-navigation nested state is attached as `route.state`
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const childState = (route as any)?.state as
+    | NavigationState
+    | PartialState<NavigationState>
+    | undefined;
+  return childState ? getDeepestActiveRouteName(childState) : route?.name;
+}
 
 function ChatStackScreen() {
   return (
@@ -77,7 +93,20 @@ function MenuStackScreen() {
 export default function MainTabs() {
   return (
     <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => {
+        const activeTabRoute = props.state.routes[props.state.index];
+        const activeNestedRouteName = getDeepestActiveRouteName(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (activeTabRoute as any)?.state
+        );
+
+        const shouldHideTabBar =
+          activeTabRoute.name === 'Chat' &&
+          activeNestedRouteName === Screens.Chat;
+
+        if (shouldHideTabBar) return null;
+        return <CustomTabBar {...props} />;
+      }}
       screenOptions={{
         headerShown: false,
       }}

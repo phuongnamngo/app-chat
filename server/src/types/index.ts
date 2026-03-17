@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import type { ParsedQs } from 'qs';
 import { Document, Types } from 'mongoose';
 
 // ==================
@@ -113,7 +114,12 @@ export interface DeleteMeBody {
   password: string;
 }
 
-export interface AuthRequest extends Request {
+export interface AuthRequest<
+  P = Record<string, string>,
+  ResBody = unknown,
+  ReqBody = unknown,
+  ReqQuery = ParsedQs
+> extends Request<P, ResBody, ReqBody, ReqQuery> {
   userId?: string;
 }
 

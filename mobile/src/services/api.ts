@@ -9,7 +9,7 @@ import {
 } from '../types';
 import { storage } from '@/App';
 
-const API_URL = 'http://192.168.19.105:3000/api';
+const API_URL = 'http://192.168.0.103:3000/api';
 /** Base URL for static assets (e.g. avatar): base + /uploads/avatars/xxx */
 export const API_BASE = API_URL.replace(/\/api\/?$/, '');
 
