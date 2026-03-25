@@ -40,12 +40,15 @@ const chatHandler = (io: TypedIO): void => {
     socket.on('send_message', async (data: SendMessageData) => {
       const { roomId, senderId, senderName, message, messageType } = data;
 
+      const normalizedType = messageType || ('text' as const);
+      const previewText = normalizedType === 'sticker' ? '[Sticker]' : message;
+
       const msgData = {
         roomId,
         senderId,
         senderName,
         message,
-        messageType: messageType || 'text' as const,
+        messageType: normalizedType,
         timestamp: new Date(),
       };
 
@@ -62,13 +65,13 @@ const chatHandler = (io: TypedIO): void => {
             participants: { $all: participantIds },
           });
           if (existing) {
-            existing.lastMessage = message;
+            existing.lastMessage = previewText;
             existing.lastMessageAt = msgData.timestamp;
             await existing.save();
           } else {
             await Conversation.create({
               participants: participantIds,
-              lastMessage: message,
+              lastMessage: previewText,
               lastMessageAt: msgData.timestamp,
             });
           }
@@ -79,7 +82,7 @@ const chatHandler = (io: TypedIO): void => {
 
       // Broadcast đến room
       io.to(roomId).emit('receive_message', msgData);
-      console.log(`💬 [${roomId}] ${senderName}: ${message}`);
+      console.log(`💬 [${roomId}] ${senderName}: ${previewText}`);
 
       // =============================================
       // 3) GỬI PUSH NOTIFICATION CHO USER OFFLINE
@@ -111,16 +114,16 @@ const chatHandler = (io: TypedIO): void => {
         if (offlineRecipients.length > 0) {
           // Cắt ngắn message cho notification
           const truncatedMessage =
-            message.length > 100
-              ? message.substring(0, 100) + '...'
-              : message;
+            previewText.length > 100
+              ? previewText.substring(0, 100) + '...'
+              : previewText;
 
           const notificationData: PushNotificationData = {
             roomId,
             senderId,
             senderName,
             message: truncatedMessage,
-            messageType: messageType || 'text',
+            messageType: normalizedType,
             timestamp: msgData.timestamp.toISOString(),
           };
 

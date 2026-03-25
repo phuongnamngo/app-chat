@@ -29,7 +29,7 @@ export interface UserProfilePayload extends UserPayload {
 // ==================
 // MESSAGE TYPES
 // ==================
-export type MessageType = 'text' | 'image' | 'file';
+export type MessageType = 'text' | 'image' | 'file' | 'sticker';
 
 export interface IMessage extends Document {
   _id: Types.ObjectId;

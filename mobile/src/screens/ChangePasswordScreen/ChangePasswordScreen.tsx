@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import type { MenuStackParamList } from '@/types';
-import { useAuth } from '@/context/AuthContext';
 import { userAPI } from '@/services/api';
 
 type NavProp = StackNavigationProp<MenuStackParamList, 'ChangePassword'>;

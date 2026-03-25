@@ -31,8 +31,6 @@ function ApplicationNavigator() {
     <SafeAreaProvider>
       <NavigationContainer ref={navigationRef} theme={navigationTheme}>
         <Stack.Navigator key={variant} screenOptions={{ headerShown: false }}>
-          {/* <Stack.Screen component={Startup} name={Paths.Startup} />
-          <Stack.Screen component={Example} name={Paths.Example} /> */}
           {isAuthenticated ? (
           // ===== Đã đăng nhập: Main = Bottom Tabs (Chat | Menu) =====
           <Stack.Screen

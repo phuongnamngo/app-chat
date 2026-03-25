@@ -12,7 +12,7 @@ export interface User {
 // ==================
 // MESSAGE
 // ==================
-export type MessageType = 'text' | 'image' | 'file';
+export type MessageType = 'text' | 'image' | 'file' | 'sticker';
 
 export interface Message {
   roomId: string;
@@ -99,9 +99,6 @@ export type RootStackParamList = {
   Settings: undefined;
   EditProfile: undefined;
   ChangePassword: undefined;
-  // Legacy (used by commented-out Startup/Example; Paths enum uses lowercase)
-  example?: undefined;
-  startup?: undefined;
 };
 
 export type MainTabParamList = {

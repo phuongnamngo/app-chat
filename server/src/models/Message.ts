@@ -22,7 +22,7 @@ const messageSchema = new Schema<IMessage>({
   },
   messageType: {
     type: String,
-    enum: ['text', 'image', 'file'],
+    enum: ['text', 'image', 'file', 'sticker'],
     default: 'text',
   },
   timestamp: {

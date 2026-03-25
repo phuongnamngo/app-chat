@@ -45,7 +45,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     });
     if (result.didCancel || !result.assets?.[0]?.uri) return;
     const asset = result.assets[0];
-    setAvatarUri(asset.uri);
+    setAvatarUri(asset.uri ?? null);
     setUploadingAvatar(true);
     try {
       const formData = new FormData();
